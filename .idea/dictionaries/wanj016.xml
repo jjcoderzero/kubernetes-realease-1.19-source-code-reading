@@ -2,6 +2,8 @@
   <dictionary name="wanj016">
     <words>
       <w>apimachinery</w>
+      <w>kubeconfig</w>
+      <w>kubectl</w>
     </words>
   </dictionary>
 </component>
