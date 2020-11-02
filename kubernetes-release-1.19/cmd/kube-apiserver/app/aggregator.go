@@ -1,6 +1,4 @@
-// Package app does all of the work necessary to create a Kubernetes
-// APIServer by binding together the API, master and APIServer infrastructure.
-// It can be configured and called directly or via the hyperkube framework.
+// Aggregator：暴露的功能类似于一个七层负载均衡，将来自用户的请求拦截转发给其他服务器，并且负责整个 APIServer 的 Discovery 功能；
 package app
 
 import (
@@ -45,14 +43,12 @@ func createAggregatorConfig(
 	proxyTransport *http.Transport,
 	pluginInitializers []admission.PluginInitializer,
 ) (*aggregatorapiserver.Config, error) {
-	// make a shallow copy to let us twiddle a few things
-	// most of the config actually remains the same.  We only need to mess with a couple items related to the particulars of the aggregator
+	// 做一个浅拷贝，让我们转动一些东西，大部分配置实际上保持不变。我们只需要处理与聚合器细节相关的几个条目
 	genericConfig := kubeAPIServerConfig
 	genericConfig.PostStartHooks = map[string]genericapiserver.PostStartHookConfigEntry{}
 	genericConfig.RESTOptionsGetter = nil
 
-	// override genericConfig.AdmissionControl with kube-aggregator's scheme,
-	// because aggregator apiserver should use its own scheme to convert its own resources.
+	// 覆盖genericConfig.AdmissionControl使用kube-aggregator的方案，因为aggregator apiserver应该使用自己的方案转换自己的资源。
 	err := commandOptions.Admission.ApplyTo(
 		&genericConfig,
 		externalInformers,
@@ -63,7 +59,7 @@ func createAggregatorConfig(
 		return nil, err
 	}
 
-	// copy the etcd options so we don't mutate originals.
+	// 复制etcd选项，这样我们就不会改变原来的。
 	etcdOptions := *commandOptions.Etcd
 	etcdOptions.StorageConfig.Paging = utilfeature.DefaultFeatureGate.Enabled(features.APIListChunking)
 	etcdOptions.StorageConfig.Codec = aggregatorscheme.Codecs.LegacyCodec(v1beta1.SchemeGroupVersion, v1.SchemeGroupVersion)
@@ -203,12 +199,11 @@ func makeAPIServiceAvailableHealthCheck(name string, apiServices []*v1.APIServic
 	})
 }
 
-// priority defines group priority that is used in discovery. This controls
-// group position in the kubectl output.
+// priority定义组优先级被用在服务发现中。它控制kubectl输出中的组位置。
 type priority struct {
-	// group indicates the order of the group relative to other groups.
+	// group 表示组相对于其他组的顺序
 	group int32
-	// version indicates the relative order of the version inside of its group.
+	// version 指示版本在其组中的相对顺序.
 	version int32
 }
 
