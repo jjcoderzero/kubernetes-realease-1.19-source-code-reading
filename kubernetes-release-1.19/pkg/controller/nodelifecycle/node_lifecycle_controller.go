@@ -260,7 +260,7 @@ func (n *nodeEvictionMap) getStatus(nodeName string) (evictionStatus, bool) {
 	return n.nodeEvictions[nodeName], true
 }
 
-// Controller is the controller that manages node's life cycle.
+// Controller 管理node生命周期的控制器.
 type Controller struct {
 	taintManager *scheduler.NoExecuteTaintManager
 
@@ -268,29 +268,29 @@ type Controller struct {
 	podInformerSynced cache.InformerSynced
 	kubeClient        clientset.Interface
 
-	// This timestamp is to be used instead of LastProbeTime stored in Condition. We do this
-	// to avoid the problem with time skew across the cluster.
+	// This timestamp is to be used instead of LastProbeTime stored in Condition. We do this to avoid the problem with time skew across the cluster.
 	now func() metav1.Time
-
+	// 计算 zone 下 node 驱逐速率
 	enterPartialDisruptionFunc func(nodeNum int) float32
 	enterFullDisruptionFunc    func(nodeNum int) float32
+	// 计算 zone 状态
 	computeZoneStateFunc       func(nodeConditions []*v1.NodeCondition) (int, ZoneState)
-
+	// 用来记录NodeController observed节点的集合
 	knownNodeSet map[string]*v1.Node
-	// per Node map storing last observed health together with a local time when it was observed.
+	// 记录 node 最近一次状态的集合
 	nodeHealthMap *nodeHealthMap
 
 	// evictorLock protects zonePodEvictor and zoneNoExecuteTainter.
 	// TODO(#83954): API calls shouldn't be executed under the lock.
 	evictorLock     sync.Mutex
 	nodeEvictionMap *nodeEvictionMap
-	// workers that evicts pods from unresponsive nodes.
+	// 需要驱逐节点上 pod 的 node 队列
 	zonePodEvictor map[string]*scheduler.RateLimitedTimedQueue
-	// workers that are responsible for tainting nodes.
+	// 需要打 taint 标签的 node 队列
 	zoneNoExecuteTainter map[string]*scheduler.RateLimitedTimedQueue
 
 	nodesToRetry sync.Map
-
+	// 将 node 划分为不同的 zone
 	zoneStates map[string]ZoneState
 
 	daemonSetStore          appsv1listers.DaemonSetLister
