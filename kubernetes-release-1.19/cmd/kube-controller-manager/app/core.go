@@ -1,7 +1,3 @@
-// Package app implements a server that runs a set of active
-// components.  This includes replication controllers, service endpoints and
-// nodes.
-//
 package app
 
 import (
@@ -499,7 +495,7 @@ func startGarbageCollectorController(ctx ControllerContext) (http.Handler, bool,
 	if !ctx.ComponentConfig.GarbageCollectorController.EnableGarbageCollector {
 		return nil, false, nil
 	}
-
+	// 1、初始化 discoveryClient，discoveryClient 主要用来获取集群中的所有资源；
 	gcClientset := ctx.ClientBuilder.ClientOrDie("generic-garbage-collector")
 
 	config := ctx.ClientBuilder.ConfigOrDie("generic-garbage-collector")
@@ -512,6 +508,7 @@ func startGarbageCollectorController(ctx ControllerContext) (http.Handler, bool,
 	for _, r := range ctx.ComponentConfig.GarbageCollectorController.GCIgnoredResources {
 		ignoredResources[schema.GroupResource{Group: r.Group, Resource: r.Resource}] = struct{}{}
 	}
+	// 调用 garbagecollector.NewGarbageCollector 初始化 garbageCollector 对象；
 	garbageCollector, err := garbagecollector.NewGarbageCollector(
 		metadataClient,
 		ctx.RESTMapper,
@@ -523,14 +520,13 @@ func startGarbageCollectorController(ctx ControllerContext) (http.Handler, bool,
 		return nil, true, fmt.Errorf("failed to start the generic garbage collector: %v", err)
 	}
 
-	// Start the garbage collector.
+	// 启动 garbage collector
 	workers := int(ctx.ComponentConfig.GarbageCollectorController.ConcurrentGCSyncs)
 	go garbageCollector.Run(workers, ctx.Stop)
 
-	// Periodically refresh the RESTMapper with new discovery information and sync
-	// the garbage collector.
+	// 监听集群中的 DeletableResources
 	go garbageCollector.Sync(gcClientset.Discovery(), 30*time.Second, ctx.Stop)
-
+	// 注册 debug 接口
 	return garbagecollector.NewDebugHandler(garbageCollector), true, nil
 }
 

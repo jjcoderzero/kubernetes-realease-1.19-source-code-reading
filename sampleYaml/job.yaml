@@ -1,0 +1,20 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pi
+spec:
+  backoffLimit: 6                # 标记为 failed 前的重试次数，默认为 6
+  completions: 4                 # 要完成job 的 pod 数，若没有设定该值则默认等于 parallelism 的值
+  parallelism: 2                 # 任意时间最多可以启动多少个 pod 同时运行，默认为 1
+  activeDeadlineSeconds: 120     # job 运行时间
+  ttlSecondsAfterFinished: 60    # job 在运行完成后 60 秒就会自动删除掉
+  template:
+    spec:
+      containers:
+        - command:
+            - sh
+            - -c
+            - 'echo ''scale=5000; 4*a(1)'' | bc -l '
+          image: resouer/ubuntu-bc
+          name: pi
+      restartPolicy: Never
