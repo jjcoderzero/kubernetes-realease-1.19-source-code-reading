@@ -1,4 +1,6 @@
+
 # Created by .ignore support plugin (hsz.mobi)
+kubernetes/.git
 ### Go template
 # Binaries for programs and plugins
 *.exe
